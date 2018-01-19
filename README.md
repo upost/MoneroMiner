@@ -16,8 +16,8 @@ The prefilled wallet is mine, so if you try the app, just keep it and I earn,
 ehm... next to nothing ;-)
 The help button will show xmrig's help output for convenience.
  
-As this is considered a proof of concept, only pool address and username can be
-edited in the UI currently. You can change the rest of the config in assets/config.json.
+As this is considered a proof of concept, only pool address, username, threads and max cup usage can be
+edited in the UI currently (there is currently no sanity check to your inputs). You can change the rest of the config in assets/config.json.
 The configuration is set to low values and regular display of hashrate is set to 1m.  
   
 # Notes

@@ -7,4 +7,7 @@
     <string name="help">Help</string>
     <string name="cmd">Cmd</string>
     <string name="stop">Stop</string>
+    <string name="threads">Threads</string>
+    <string name="max_cpu_usage">Max CPU usage</string>
+    <string name="percent">percent</string>
 </resources>

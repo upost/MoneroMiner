@@ -98,9 +98,11 @@ public class Tools {
      * @param privatePath
      * @throws IOException
      */
-    public static void writeConfig(String configTemplate, String poolUrl, String username, String privatePath)  {
+    public static void writeConfig(String configTemplate, String poolUrl, String username, String threads, String maxCpu, String privatePath)  {
         String config = configTemplate.replace("$url$",poolUrl)
-                .replace("$username$",username);
+                .replace("$username$",username)
+                .replace("$threads$",threads)
+                .replace("$maxcpu$", maxCpu);
         PrintWriter writer = null;
         try {
             writer = new PrintWriter(new FileOutputStream(privatePath+"/config.json"));

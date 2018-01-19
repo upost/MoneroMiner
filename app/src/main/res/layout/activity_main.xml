@@ -46,6 +46,37 @@
         android:layout_height="wrap_content"
         android:text="49MGSvJjQLJRqtyFfB6MRNPqUczEFCP1MKrHozoKx32W3J84sziDqewd6zXceZVXcCNfLwQXXhDJoaZ7hg73mAUdRg5Zqf9"/>
 
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:orientation="horizontal">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/threads"/>
+        <EditText
+            android:id="@+id/threads"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="3"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/max_cpu_usage"/>
+        <EditText
+            android:id="@+id/maxcpu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="80"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/percent"/>
+
+
+
+
+
+    </LinearLayout>
 
     <ScrollView
         android:layout_width="match_parent"

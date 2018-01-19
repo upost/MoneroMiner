@@ -7,13 +7,13 @@
   "cpu-priority": 2,
   "donate-level": 0,
   "log-file": null,
-  "max-cpu-usage": 75,
+  "max-cpu-usage": $maxcpu$,
   "print-time": 60,
   "retries": 5000,
   "retry-pause": 5,
   "safe": false,
   "syslog": false,
-  "threads": 2,
+  "threads": $threads$,
   "pools": [
     {
       "url": "$url$",

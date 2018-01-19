@@ -41,8 +41,9 @@ public class MainActivity extends Activity {
     private TextView tvLog;
     private OutputReaderThread outputHandler;
     private EditText edPool,edUser;
-    private EditText edCmdline;
+    private EditText  edThreads, edMaxCpu;
     private String configTemplate;
+
 
 
     @Override
@@ -65,6 +66,8 @@ public class MainActivity extends Activity {
         tvLog = findViewById(R.id.output);
         edPool = findViewById(R.id.pool);
         edUser = findViewById(R.id.username);
+        edThreads = findViewById(R.id.threads);
+        edMaxCpu = findViewById(R.id.maxcpu);
 
         findViewById(R.id.start).setOnClickListener(this::startMining);
         findViewById(R.id.help).setOnClickListener(this::startMining);
@@ -105,7 +108,8 @@ public class MainActivity extends Activity {
 
         try {
             // write the config
-            Tools.writeConfig(configTemplate,edPool.getText().toString(), edUser.getText().toString(),privatePath);
+            Tools.writeConfig(configTemplate,edPool.getText().toString(), edUser.getText().toString(),
+                    edThreads.getText().toString(), edMaxCpu.getText().toString(), privatePath);
 
             // run xmrig
             ProcessBuilder pb = new ProcessBuilder(args);
