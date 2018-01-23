@@ -10,4 +10,6 @@
     <string name="threads">Threads</string>
     <string name="max_cpu_usage">Max CPU usage</string>
     <string name="percent">percent</string>
+    <string name="hpers">H/s</string>
+    <string name="accepted">accepted</string>
 </resources>

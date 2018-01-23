@@ -23,14 +23,17 @@ import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -45,7 +48,7 @@ public class MainActivity extends Activity {
     private EditText edPool,edUser;
     private EditText  edThreads, edMaxCpu;
     private String configTemplate;
-
+    private TextView tvSpeed,tvAccepted;
 
 
     @Override
@@ -66,6 +69,8 @@ public class MainActivity extends Activity {
 
         // wire views
         tvLog = findViewById(R.id.output);
+        tvSpeed = findViewById(R.id.speed);
+        tvAccepted = findViewById(R.id.accepted);
         edPool = findViewById(R.id.pool);
         edUser = findViewById(R.id.username);
         edThreads = findViewById(R.id.threads);
@@ -142,6 +147,8 @@ public class MainActivity extends Activity {
         runOnUiThread(()->{
             if(outputHandler!=null && outputHandler.output!=null) {
                 tvLog.setText(outputHandler.output.toString());
+                tvAccepted.setText(""+outputHandler.getAccepted());
+                tvSpeed.setText(outputHandler.getSpeed());
             }
         });
     }
@@ -154,6 +161,9 @@ public class MainActivity extends Activity {
 
         private InputStream inputStream;
         private StringBuilder output = new StringBuilder();
+        private BufferedReader reader;
+        private int accepted;
+        private String speed;
 
         OutputReaderThread(InputStream inputStream) {
             this.inputStream = inputStream;
@@ -161,9 +171,16 @@ public class MainActivity extends Activity {
 
         public void run() {
             try {
-                int c;
-                while ((c = inputStream.read()) != -1) {
-                    output.append((char) c);
+                reader = new BufferedReader(new InputStreamReader(inputStream));
+                String line;
+                while((line = reader.readLine()) != null) {
+                    output.append(line + System.lineSeparator());
+                    if(line.contains("accepted")) {
+                        accepted++;
+                    } else if (line.contains("speed")) {
+                        String[] split = TextUtils.split(line," ");
+                        speed = split[split.length-2];
+                    }
                 }
             } catch (IOException e) {
                 Log.w(LOG_TAG,"exception",e);
@@ -174,6 +191,13 @@ public class MainActivity extends Activity {
             return output;
         }
 
+        public String getSpeed() {
+            return speed;
+        }
+
+        public int getAccepted() {
+            return accepted;
+        }
     }
 
 
