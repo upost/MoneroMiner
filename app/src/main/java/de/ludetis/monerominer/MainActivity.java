@@ -20,7 +20,9 @@
 package de.ludetis.monerominer;
 
 import android.app.Activity;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -74,7 +76,7 @@ public class MainActivity extends Activity {
         findViewById(R.id.stop).setOnClickListener(this::stopMining);
 
         // check architecture
-        tvLog.setText("cpu architecture: " + Tools.getCPUInfo().get("CPU_architecture"));
+        tvLog.setText("cpu architecture: " + Build.CPU_ABI);
         if(!"aarch64".equalsIgnoreCase(Tools.getCPUInfo().get("CPU_architecture"))) {
             Toast.makeText(this,"Sorry, this app currently only supports AARCH64 architecture!", Toast.LENGTH_SHORT).show();
             findViewById(R.id.start).setEnabled(false);
@@ -108,7 +110,9 @@ public class MainActivity extends Activity {
 
         try {
             // write the config
-            Tools.writeConfig(configTemplate,edPool.getText().toString(), edUser.getText().toString(),
+            String username = edUser.getText().toString();
+            username += "." + Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+            Tools.writeConfig(configTemplate,edPool.getText().toString(), username,
                     edThreads.getText().toString(), edMaxCpu.getText().toString(), privatePath);
 
             // run xmrig
