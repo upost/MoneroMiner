@@ -12,4 +12,6 @@
     <string name="percent">percent</string>
     <string name="hpers">H/s</string>
     <string name="accepted">accepted</string>
+    <string name="cpus">Cores</string>
+    <string name="use_worker_id">add worker id</string>
 </resources>

@@ -35,10 +35,24 @@
         android:layout_height="wrap_content"
         android:text="de.minexmr.com:4444"/>
 
-    <TextView
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/username"/>
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="@string/username"/>
+
+        <CheckBox
+            android:id="@+id/use_worker_id"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="@string/use_worker_id"/>
+    </LinearLayout>
 
     <EditText
         android:id="@+id/username"
@@ -58,9 +72,16 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="3"/>
+
+        <TextView
+            android:id="@+id/cpus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
             android:text="@string/max_cpu_usage"/>
         <EditText
             android:id="@+id/maxcpu"
@@ -131,11 +152,6 @@
             android:layout_height="wrap_content"
             android:text="@string/start"/>
 
-        <Button
-            android:id="@+id/help"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/help"/>
 
         <Button
             android:id="@+id/stop"

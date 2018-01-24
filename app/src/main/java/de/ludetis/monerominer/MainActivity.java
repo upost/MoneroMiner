@@ -20,35 +20,33 @@
 package de.ludetis.monerominer;
 
 import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
-import android.text.TextUtils;
-import android.util.Log;
+import android.os.IBinder;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends Activity {
-    private static final String LOG_TAG = "main";
-    private String privatePath;
-    private Process process;
+
     private ScheduledExecutorService svc;
     private TextView tvLog;
-    private OutputReaderThread outputHandler;
     private EditText edPool,edUser;
     private EditText  edThreads, edMaxCpu;
-    private String configTemplate;
     private TextView tvSpeed,tvAccepted;
+    private CheckBox cbUseWorkerId;
+    private boolean validArchitecture = true;
+
+    private MiningService.MiningServiceBinder binder;
 
 
     @Override
@@ -56,16 +54,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // path where we may execute our program
-        privatePath =  getFilesDir().getAbsolutePath() ;
-
-        // copy binaries to a path where we may execute it);
-        Tools.copyFile(this,"xmrig-arm64",privatePath+ "/xmrig");
-        Tools.copyFile(this,"libuv.so",privatePath+ "/libuv.so");
-        Tools.copyFile(this,"libc++_shared.so",privatePath+ "/libc++_shared.so");
-
-        // load config template
-        configTemplate = Tools.loadConfigTemplate(this);
+        enableButtons(false);
 
         // wire views
         tvLog = findViewById(R.id.output);
@@ -75,130 +64,91 @@ public class MainActivity extends Activity {
         edUser = findViewById(R.id.username);
         edThreads = findViewById(R.id.threads);
         edMaxCpu = findViewById(R.id.maxcpu);
-
-        findViewById(R.id.start).setOnClickListener(this::startMining);
-        findViewById(R.id.help).setOnClickListener(this::startMining);
-        findViewById(R.id.stop).setOnClickListener(this::stopMining);
+        cbUseWorkerId = findViewById(R.id.use_worker_id);
 
         // check architecture
-        tvLog.setText("cpu architecture: " + Build.CPU_ABI);
         if(!"aarch64".equalsIgnoreCase(Tools.getCPUInfo().get("CPU_architecture"))) {
-            Toast.makeText(this,"Sorry, this app currently only supports AARCH64 architecture!", Toast.LENGTH_SHORT).show();
-            findViewById(R.id.start).setEnabled(false);
+            Toast.makeText(this, "Sorry, this app currently only supports AARCH64 architecture, but yours is " + Build.CPU_ABI, Toast.LENGTH_SHORT).show();
+            // this flag will keep the start button disabled
+            validArchitecture = false;
         }
 
-        // the executor which will load and display xmrig's output
-        svc = Executors.newSingleThreadScheduledExecutor();
-        svc.scheduleWithFixedDelay(this::updateLog, 1, 1, TimeUnit.SECONDS);
+        // run the service
+        Intent intent = new Intent(this, MiningService.class);
+        bindService(intent, serverConnection, BIND_AUTO_CREATE);
+        startService(intent);
 
-    }
 
-
-    private void stopMining(View view) {
-        if(process !=null) {
-            process.destroy();
-            process = null;
-            Log.i(LOG_TAG, "stopped");
-        }
     }
 
     private void startMining(View view) {
-        Log.i(LOG_TAG,"starting...");
-        if(process !=null) {
-            process.destroy();
+        if (binder == null) return;
+        MiningService.MiningConfig cfg = binder.getService().newConfig(edUser.getText().toString(), edPool.getText().toString(),
+                Integer.parseInt(edThreads.getText().toString()), Integer.parseInt(edMaxCpu.getText().toString()), cbUseWorkerId.isChecked());
+        binder.getService().startMining(cfg);
+    }
+
+    private void stopMining(View view) {
+        binder.getService().stopMining();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // the executor which will load and display the service status regularly
+        svc = Executors.newSingleThreadScheduledExecutor();
+        svc.scheduleWithFixedDelay(this::updateLog, 1, 1, TimeUnit.SECONDS);
+    }
+
+    @Override
+    protected void onPause() {
+        svc.shutdown();
+        super.onPause();
+    }
+
+    private ServiceConnection serverConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            binder = (MiningService.MiningServiceBinder) iBinder;
+            if (validArchitecture) {
+                enableButtons(true);
+                findViewById(R.id.start).setOnClickListener(MainActivity.this::startMining);
+                findViewById(R.id.stop).setOnClickListener(MainActivity.this::stopMining);
+                int cores = binder.getService().getAvailableCores();
+                // write suggested cores usage into editText
+                int suggested = cores / 2;
+                if (suggested == 0) suggested = 1;
+                edThreads.getText().clear();
+                edThreads.getText().append(Integer.toString(suggested));
+                ((TextView) findViewById(R.id.cpus)).setText(String.format("(%d %s)", cores, getString(R.string.cpus)));
+            }
+
         }
 
-        // just for convenience, the help command
-        String[] args = {"./xmrig" };
-        String[] mineh = { "./xmrig","--help"};
-        if(view.getId()==R.id.help) args = mineh;
-
-        try {
-            // write the config
-            String username = edUser.getText().toString();
-            username += "." + Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
-            Tools.writeConfig(configTemplate,edPool.getText().toString(), username,
-                    edThreads.getText().toString(), edMaxCpu.getText().toString(), privatePath);
-
-            // run xmrig
-            ProcessBuilder pb = new ProcessBuilder(args);
-            // in our directory
-            pb.directory(getApplicationContext().getFilesDir());
-            // with the directory as ld path so xmrig finds the libs
-            pb.environment().put("LD_LIBRARY_PATH",  privatePath );
-            // in case of errors, read them
-            pb.redirectErrorStream();
-            // run it!
-            process = pb.start();
-            // start processing xmrig's output
-            outputHandler = new OutputReaderThread(process.getInputStream());
-            outputHandler.start();
-
-        } catch (Exception e) {
-            Log.e(LOG_TAG,"exception:",e);
-            Toast.makeText(this,e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-            process = null;
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            binder = null;
+            enableButtons(false);
         }
+    };
 
+    private void enableButtons(boolean enabled) {
+        findViewById(R.id.start).setEnabled(enabled);
+        findViewById(R.id.stop).setEnabled(enabled);
     }
 
 
     private void updateLog() {
         runOnUiThread(()->{
-            if(outputHandler!=null && outputHandler.output!=null) {
-                tvLog.setText(outputHandler.output.toString());
-                tvAccepted.setText(""+outputHandler.getAccepted());
-                tvSpeed.setText(outputHandler.getSpeed());
+            if (binder != null) {
+                tvLog.setText(binder.getService().getOutput());
+                tvAccepted.setText(Integer.toString(binder.getService().getAccepted()));
+                tvSpeed.setText(binder.getService().getSpeed());
             }
         });
     }
 
 
-    /**
-     * thread to collect the binary's output
-     */
-    private static class OutputReaderThread extends Thread {
-
-        private InputStream inputStream;
-        private StringBuilder output = new StringBuilder();
-        private BufferedReader reader;
-        private int accepted;
-        private String speed;
-
-        OutputReaderThread(InputStream inputStream) {
-            this.inputStream = inputStream;
-        }
-
-        public void run() {
-            try {
-                reader = new BufferedReader(new InputStreamReader(inputStream));
-                String line;
-                while((line = reader.readLine()) != null) {
-                    output.append(line + System.lineSeparator());
-                    if(line.contains("accepted")) {
-                        accepted++;
-                    } else if (line.contains("speed")) {
-                        String[] split = TextUtils.split(line," ");
-                        speed = split[split.length-2];
-                    }
-                }
-            } catch (IOException e) {
-                Log.w(LOG_TAG,"exception",e);
-            }
-        }
-
-        public StringBuilder getOutput() {
-            return output;
-        }
-
-        public String getSpeed() {
-            return speed;
-        }
-
-        public int getAccepted() {
-            return accepted;
-        }
-    }
 
 
 
