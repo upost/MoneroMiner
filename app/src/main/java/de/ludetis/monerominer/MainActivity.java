@@ -32,11 +32,14 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends Activity {
+
+    private final static String[] SUPPORTED_ARCHITECTURES = {"aarch64", "arm64-v8a"};
 
     private ScheduledExecutorService svc;
     private TextView tvLog;
@@ -67,8 +70,8 @@ public class MainActivity extends Activity {
         cbUseWorkerId = findViewById(R.id.use_worker_id);
 
         // check architecture
-        if(!"aarch64".equalsIgnoreCase(Tools.getCPUInfo().get("CPU_architecture"))) {
-            Toast.makeText(this, "Sorry, this app currently only supports AARCH64 architecture, but yours is " + Build.CPU_ABI, Toast.LENGTH_SHORT).show();
+        if (!Arrays.asList(SUPPORTED_ARCHITECTURES).contains(Tools.getCPUInfo().get("CPU_architecture").toLowerCase())) {
+            Toast.makeText(this, "Sorry, this app currently only supports 64 bit architectures, but yours is " + Build.CPU_ABI, Toast.LENGTH_LONG).show();
             // this flag will keep the start button disabled
             validArchitecture = false;
         }
