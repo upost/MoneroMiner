@@ -70,7 +70,7 @@ public class MainActivity extends Activity {
         cbUseWorkerId = findViewById(R.id.use_worker_id);
 
         // check architecture
-        if (!Arrays.asList(SUPPORTED_ARCHITECTURES).contains(Tools.getCPUInfo().get("CPU_architecture").toLowerCase())) {
+        if (!Arrays.asList(SUPPORTED_ARCHITECTURES).contains(Build.CPU_ABI.toLowerCase())) {
             Toast.makeText(this, "Sorry, this app currently only supports 64 bit architectures, but yours is " + Build.CPU_ABI, Toast.LENGTH_LONG).show();
             // this flag will keep the start button disabled
             validArchitecture = false;
