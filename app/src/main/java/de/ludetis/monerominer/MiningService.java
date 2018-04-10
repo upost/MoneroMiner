@@ -216,6 +216,9 @@ public class MiningService extends Service {
                     } else if (line.contains("speed")) {
                         String[] split = TextUtils.split(line, " ");
                         speed = split[split.length - 2];
+                        if (speed.equals("n/a")) {
+                            speed = split[split.length - 6];
+                        }
                     }
                     if (currentThread().isInterrupted()) return;
                 }
