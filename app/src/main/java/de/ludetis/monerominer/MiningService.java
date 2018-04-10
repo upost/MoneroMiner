@@ -23,6 +23,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
 import android.text.TextUtils;
 import android.util.Log;
@@ -64,10 +65,12 @@ public class MiningService extends Service {
         workerId = fetchOrCreateWorkerId();
         Log.w(LOG_TAG, "my workerId: " + workerId);
 
+        String abi = Build.CPU_ABI.toLowerCase();
+
         // copy binaries to a path where we may execute it);
-        Tools.copyFile(this, "xmrig-arm64", privatePath + "/xmrig");
-        Tools.copyFile(this, "libuv.so", privatePath + "/libuv.so");
-        Tools.copyFile(this, "libc++_shared.so", privatePath + "/libc++_shared.so");
+        Tools.copyFile(this, abi + "/xmrig", privatePath + "/xmrig");
+        Tools.copyFile(this, abi + "/libuv", privatePath + "/libuv.so");
+        Tools.copyFile(this, "libc++.so", privatePath + "/libc++_shared.so");
 
     }
 

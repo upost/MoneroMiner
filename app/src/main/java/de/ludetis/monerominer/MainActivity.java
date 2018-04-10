@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends Activity {
 
-    private final static String[] SUPPORTED_ARCHITECTURES = {"aarch64", "arm64-v8a"};
+    private final static String[] SUPPORTED_ARCHITECTURES = {"arm64-v8a", "armeabi-v7a"};
 
     private ScheduledExecutorService svc;
     private TextView tvLog;
